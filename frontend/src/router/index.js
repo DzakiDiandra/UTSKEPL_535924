@@ -11,35 +11,35 @@ const router = createRouter({
   },
   routes: [
     {
+      path: '/login',
+      name: 'login',
+      component: () => import('@/views/LoginView.vue'),
+      meta: { title: 'Masuk - LokaHP', public: true },
+    },
+    {
       path: '/',
       name: 'beranda',
       component: () => import('@/views/HomeView.vue'),
-      meta: { title: 'LokaHP — HP pilihan, stok jelas' },
+      meta: { title: 'LokaHP - HP pilihan, stok jelas', requiresAuth: true },
     },
     {
       path: '/produk',
       name: 'katalog',
       component: () => import('@/views/KatalogView.vue'),
-      meta: { title: 'Katalog HP — LokaHP' },
+      meta: { title: 'Katalog HP - LokaHP', requiresAuth: true },
     },
     {
       path: '/produk/:id',
       name: 'produk-detail',
       component: () => import('@/views/ProdukDetailView.vue'),
-      meta: { title: 'Detail HP — LokaHP' },
-    },
-    {
-      path: '/admin/login',
-      name: 'admin-login',
-      component: () => import('@/views/admin/AdminLoginView.vue'),
-      meta: { title: 'Masuk Admin — LokaHP', admin: true, guest: true },
+      meta: { title: 'Detail HP - LokaHP', requiresAuth: true },
     },
     {
       path: '/admin/produk',
       name: 'admin-produk',
       component: () => import('@/views/admin/AdminProdukView.vue'),
       meta: {
-        title: 'Daftar Produk — LokaHP',
+        title: 'Daftar Produk - LokaHP',
         admin: true,
         requiresAuth: true,
         requiresAdmin: true,
@@ -50,7 +50,7 @@ const router = createRouter({
       name: 'admin-produk-baru',
       component: () => import('@/views/admin/AdminProdukFormView.vue'),
       meta: {
-        title: 'Tambah Produk — LokaHP',
+        title: 'Tambah Produk - LokaHP',
         admin: true,
         requiresAuth: true,
         requiresAdmin: true,
@@ -61,7 +61,7 @@ const router = createRouter({
       name: 'admin-produk-edit',
       component: () => import('@/views/admin/AdminProdukFormView.vue'),
       meta: {
-        title: 'Edit Produk — LokaHP',
+        title: 'Edit Produk - LokaHP',
         admin: true,
         requiresAuth: true,
         requiresAdmin: true,
@@ -71,7 +71,7 @@ const router = createRouter({
       path: '/:pathMatch(.*)*',
       name: 'tidak-ditemukan',
       component: () => import('@/views/NotFoundView.vue'),
-      meta: { title: 'Halaman Tidak Ditemukan — LokaHP' },
+      meta: { title: 'Halaman Tidak Ditemukan - LokaHP', requiresAuth: true },
     },
   ],
 })
@@ -79,14 +79,17 @@ const router = createRouter({
 router.beforeEach((to) => {
   const { isAuthenticated, isAdmin, clearSession } = useAuth()
 
-  if (to.meta.guest && isAuthenticated.value) {
-    if (isAdmin.value) return { name: 'admin-produk' }
-    clearSession()
+  if (to.meta.public) {
+    if (isAuthenticated.value) {
+      return isAdmin.value ? { name: 'admin-produk' } : { name: 'katalog' }
+    }
+
+    return true
   }
 
-  if (to.meta.requiresAuth && !isAuthenticated.value) {
+  if (!isAuthenticated.value) {
     return {
-      name: 'admin-login',
+      name: 'login',
       query: { redirect: to.fullPath },
     }
   }
@@ -96,7 +99,7 @@ router.beforeEach((to) => {
     const { tampilkanToast } = useToast()
     tampilkanToast('Akun ini bukan admin. Silakan masuk dengan akun admin.', 'danger')
 
-    return { name: 'admin-login' }
+    return { name: 'login' }
   }
 
   return true

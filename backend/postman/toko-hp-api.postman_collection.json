@@ -1,0 +1,478 @@
+{
+  "info": {
+    "name": "Toko HP API",
+    "description": "Koleksi pengujian REST API toko HP. Jalankan berurutan; request login menyimpan token ke variabel koleksi.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8000/api"
+    },
+    {
+      "key": "token",
+      "value": ""
+    },
+    {
+      "key": "token_pelanggan",
+      "value": ""
+    },
+    {
+      "key": "produk_id",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "Autentikasi",
+      "item": [
+        {
+          "name": "Login Admin",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "const data = pm.response.json();",
+                  "pm.test('Token admin tersedia', function () { pm.expect(data.token).to.be.a('string').and.not.empty; });",
+                  "pm.test('Akun admin', function () { pm.expect(data.user.is_admin).to.eql(true); });",
+                  "pm.collectionVariables.set('token', data.token);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@example.com\",\n  \"password\": \"password\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{base_url}}/login",
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "Login Pelanggan",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "const data = pm.response.json();",
+                  "pm.test('Akun pelanggan', function () { pm.expect(data.user.is_admin).to.eql(false); });",
+                  "pm.collectionVariables.set('token_pelanggan', data.token);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"pelanggan@example.com\",\n  \"password\": \"password\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{base_url}}/login",
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "Tanpa Token - GET Produk",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 401', function () { pm.response.to.have.status(401); });",
+                  "pm.test('Balasan JSON', function () { pm.response.to.have.jsonBody(); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/produk",
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "Tanpa Token - GET Merek",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 401', function () { pm.response.to.have.status(401); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/merek",
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "Profil Saya",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Email admin', function () { pm.expect(pm.response.json().user.email).to.eql('admin@example.com'); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/me"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Produk",
+      "item": [
+        {
+          "name": "Daftar Produk",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Data berbentuk array', function () { pm.expect(pm.response.json().data).to.be.an('array'); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/produk"
+          }
+        },
+        {
+          "name": "Daftar Merek",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/merek"
+          }
+        },
+        {
+          "name": "Daftar Produk Admin",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/admin/produk"
+          }
+        },
+        {
+          "name": "Tambah Produk",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 201', function () { pm.response.to.have.status(201); });",
+                  "const data = pm.response.json();",
+                  "pm.test('Nama produk sesuai', function () { pm.expect(data.data.nama).to.eql('Postman Test Phone'); });",
+                  "pm.collectionVariables.set('produk_id', data.data.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nama\": \"Postman Test Phone\",\n  \"merek\": \"Samsung\",\n  \"deskripsi\": \"Produk yang dibuat oleh koleksi Postman untuk pengujian CRUD.\",\n  \"harga\": 2500000,\n  \"stok\": 8,\n  \"chipset\": \"MediaTek Helio G99\",\n  \"ram_gb\": 8,\n  \"penyimpanan_gb\": 256,\n  \"baterai_mah\": 5000,\n  \"kamera_mp\": 50,\n  \"layar_inci\": 6.5,\n  \"gambar_url\": null,\n  \"is_aktif\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{base_url}}/produk"
+          }
+        },
+        {
+          "name": "Validasi Harga Negatif",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 422', function () { pm.response.to.have.status(422); });",
+                  "pm.test('Error pada kolom harga', function () { pm.expect(pm.response.json().errors.harga).to.be.an('array'); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nama\": \"Produk Harga Salah\",\n  \"merek\": \"Samsung\",\n  \"deskripsi\": \"Produk untuk menguji validasi harga negatif.\",\n  \"harga\": -1,\n  \"stok\": 1,\n  \"chipset\": \"MediaTek Helio G99\",\n  \"ram_gb\": 8,\n  \"penyimpanan_gb\": 128,\n  \"baterai_mah\": 5000,\n  \"kamera_mp\": 50,\n  \"layar_inci\": 6.5\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{base_url}}/produk"
+          }
+        },
+        {
+          "name": "Detail Produk",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('ID sesuai', function () { pm.expect(String(pm.response.json().data.id)).to.eql(String(pm.collectionVariables.get('produk_id'))); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/produk/{{produk_id}}"
+          }
+        },
+        {
+          "name": "Ubah Produk",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Harga berubah', function () { pm.expect(pm.response.json().data.harga).to.eql(1999000); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"harga\": 1999000,\n  \"stok\": 4\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{base_url}}/produk/{{produk_id}}"
+          }
+        },
+        {
+          "name": "Hapus Produk",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 204', function () { pm.response.to.have.status(204); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{base_url}}/produk/{{produk_id}}"
+          }
+        },
+        {
+          "name": "Pelanggan Tidak Boleh Menulis",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 403', function () { pm.response.to.have.status(403); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nama\": \"Produk Pelanggan\",\n  \"merek\": \"Samsung\",\n  \"deskripsi\": \"Tidak boleh dibuat oleh pelanggan.\",\n  \"harga\": 1000000,\n  \"stok\": 1,\n  \"chipset\": \"MediaTek Helio G99\",\n  \"ram_gb\": 8,\n  \"penyimpanan_gb\": 128,\n  \"baterai_mah\": 5000,\n  \"kamera_mp\": 50,\n  \"layar_inci\": 6.5\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{base_url}}/produk",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token_pelanggan}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Akhir Sesi",
+      "item": [
+        {
+          "name": "Logout",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 204', function () { pm.response.to.have.status(204); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{base_url}}/logout"
+          }
+        },
+        {
+          "name": "Token Lama Ditolak",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 401', function () { pm.response.to.have.status(401); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/me"
+          }
+        }
+      ]
+    }
+  ]
+}

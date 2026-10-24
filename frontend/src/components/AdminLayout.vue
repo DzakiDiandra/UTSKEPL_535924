@@ -17,8 +17,8 @@ async function keluar() {
 
   try {
     await logout()
-    tampilkanToast('Anda sudah keluar dari panel admin.', 'info')
-    await router.push({ name: 'admin-login' })
+    tampilkanToast('Anda sudah keluar dari akun.', 'info')
+    await router.push({ name: 'login' })
   } finally {
     sedangKeluar.value = false
   }

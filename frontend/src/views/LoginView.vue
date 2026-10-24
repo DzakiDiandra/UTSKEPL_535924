@@ -2,7 +2,6 @@
 import { reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import {
-  ArrowLeft,
   Check,
   Eye,
   EyeOff,
@@ -17,7 +16,7 @@ import PhoneVisual from '@/components/PhoneVisual.vue'
 
 const route = useRoute()
 const router = useRouter()
-const { login, clearSession } = useAuth()
+const { login } = useAuth()
 const { tampilkanToast } = useToast()
 
 const form = reactive({
@@ -39,7 +38,7 @@ function validasi() {
   const email = form.email.trim()
 
   if (!email) {
-    errors.email = 'Email admin wajib diisi.'
+    errors.email = 'Email wajib diisi.'
   } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     errors.email = 'Masukkan alamat email yang valid.'
   }
@@ -58,10 +57,12 @@ function validasi() {
   return true
 }
 
-function tujuanSetelahMasuk() {
+function tujuanSetelahMasuk(akun) {
+  if (!akun.is_admin) return { name: 'katalog' }
+
   const tujuan = route.query.redirect
 
-  if (typeof tujuan === 'string' && tujuan.startsWith('/admin') && tujuan !== '/admin/login') {
+  if (typeof tujuan === 'string' && tujuan.startsWith('/admin') && tujuan !== '/login') {
     return tujuan
   }
 
@@ -78,17 +79,10 @@ async function masuk() {
   try {
     const akun = await login(form.email.trim(), form.password)
 
-    if (!akun.is_admin) {
-      clearSession()
-      galat.value = 'Akun ini bukan admin. Gunakan akun admin untuk membuka panel.'
-      return
-    }
-
     tampilkanToast(`Selamat datang, ${akun.name}.`, 'success')
-    await router.replace(tujuanSetelahMasuk())
+    await router.replace(tujuanSetelahMasuk(akun))
   } catch (error) {
     if (error.response?.status === 401) {
-      clearSession()
       galat.value = 'Email atau password tidak cocok. Periksa kembali lalu coba lagi.'
     } else if (error.response?.status === 422) {
       galat.value = 'Email dan password belum lengkap. Periksa kembali isian Anda.'
@@ -107,29 +101,29 @@ async function masuk() {
   <div class="login">
     <div class="login__kartu">
       <section class="login__intro">
-        <RouterLink class="login__brand" :to="{ name: 'beranda' }">
+        <div class="login__brand">
           <span class="login__brand-mark" aria-hidden="true">
             <Smartphone :size="20" />
           </span>
           <span>
             <strong>LokaHP</strong>
-            <small>Panel admin</small>
+            <small>Toko HP</small>
           </span>
-        </RouterLink>
+        </div>
 
         <div class="login__salinan">
-          <p class="eyebrow">Ruang pengelola</p>
-          <h1>Kelola katalog tanpa tebak-tebakan.</h1>
+          <p class="eyebrow">Ruang akun</p>
+          <h1>Satu akun untuk katalog dan pengelolaan.</h1>
           <p>
-            Perbarui produk, stok, dan spesifikasi dari satu tempat. Perubahan langsung terlihat di
-            halaman toko.
+            Masuk untuk melihat katalog HP. Akun admin dapat menambah, mengubah, dan menghapus
+            produk dari panel.
           </p>
         </div>
 
         <ul class="login__daftar">
-          <li><Check :size="16" aria-hidden="true" /> Tambah dan ubah produk</li>
-          <li><Check :size="16" aria-hidden="true" /> Atur stok dan status tampil</li>
-          <li><Check :size="16" aria-hidden="true" /> Lihat hasilnya di katalog publik</li>
+          <li><Check :size="16" aria-hidden="true" /> Pelanggan melihat katalog dan detail HP</li>
+          <li><Check :size="16" aria-hidden="true" /> Admin mengelola produk dan stok</li>
+          <li><Check :size="16" aria-hidden="true" /> Sesi memakai token Sanctum</li>
         </ul>
 
         <div class="login__visual" aria-hidden="true">
@@ -140,8 +134,8 @@ async function masuk() {
       <section class="login__form-panel">
         <div class="login__form-head">
           <p class="eyebrow">Masuk</p>
-          <h2>Masuk ke panel admin</h2>
-          <p>Gunakan akun admin toko untuk melanjutkan.</p>
+          <h2>Masuk ke LokaHP</h2>
+          <p>Gunakan akun admin atau pelanggan untuk melanjutkan.</p>
         </div>
 
         <div v-if="galat" class="login__galat" role="alert">
@@ -151,7 +145,7 @@ async function masuk() {
 
         <form class="login__form" novalidate @submit.prevent="masuk">
           <div class="field">
-            <label for="email">Email admin</label>
+            <label for="email">Email</label>
             <input
               id="email"
               v-model="form.email"
@@ -160,7 +154,7 @@ async function masuk() {
               type="email"
               name="email"
               autocomplete="username"
-              placeholder="nama@toko.com"
+              placeholder="nama@email.com"
               :aria-invalid="Boolean(errors.email)"
               :aria-describedby="errors.email ? 'error-email' : undefined"
             />
@@ -182,7 +176,7 @@ async function masuk() {
                 :type="lihatSandi ? 'text' : 'password'"
                 name="password"
                 autocomplete="current-password"
-                placeholder="Password akun admin"
+                placeholder="Password akun"
                 :aria-invalid="Boolean(errors.password)"
                 :aria-describedby="errors.password ? 'error-password' : undefined"
               />
@@ -204,14 +198,9 @@ async function masuk() {
 
           <button class="btn btn--primary btn--block" type="submit" :disabled="memuat">
             <LoaderCircle v-if="memuat" class="spin" :size="18" />
-            {{ memuat ? 'Memeriksa akun…' : 'Masuk ke panel' }}
+            {{ memuat ? 'Memeriksa akun…' : 'Masuk' }}
           </button>
         </form>
-
-        <RouterLink class="login__kembali" :to="{ name: 'beranda' }">
-          <ArrowLeft :size="16" />
-          Kembali ke toko
-        </RouterLink>
       </section>
     </div>
   </div>

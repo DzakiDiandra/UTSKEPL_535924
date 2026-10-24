@@ -240,7 +240,9 @@ function tanganiErrorSimpan(error) {
 
     DAFTAR_FIELD.forEach((field) => {
       if (kesalahan[field]) {
-        errors[field] = 'Isian ini belum sesuai. Periksa kembali.'
+        errors[field] = Array.isArray(kesalahan[field])
+          ? kesalahan[field][0]
+          : 'Isian ini belum sesuai. Periksa kembali.'
         if (!pertama) pertama = field
       }
     })
