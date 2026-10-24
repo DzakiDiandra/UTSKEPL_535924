@@ -23,7 +23,6 @@ const tautanWhatsapp = nomorWhatsapp ? `https://wa.me/${nomorWhatsapp}` : ''
         <p class="eyebrow">Jelajahi</p>
         <RouterLink :to="{ name: 'beranda' }">Beranda</RouterLink>
         <RouterLink :to="{ name: 'katalog' }">Katalog HP</RouterLink>
-        <RouterLink :to="{ name: 'admin-login' }">Admin</RouterLink>
       </nav>
 
       <div class="footer__kontak">
