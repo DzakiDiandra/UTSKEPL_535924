@@ -21,7 +21,7 @@ describe('statusStok', () => {
   })
 
   it('menandai stok di atas 5 sebagai tersedia', () => {
-    expect(statusStok(6)).toBe('menipis')
+    expect(statusStok(6)).toBe('tersedia')
     expect(statusStok(12)).toBe('tersedia')
   })
 })
