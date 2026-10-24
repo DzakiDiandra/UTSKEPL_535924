@@ -1,4 +1,4 @@
-{
+﻿{
   "info": {
     "name": "Toko HP API",
     "description": "Koleksi pengujian REST API toko HP. Jalankan berurutan; request login menyimpan token ke variabel koleksi.",
@@ -45,10 +45,10 @@
                 "type": "text/javascript",
                 "exec": [
                   "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
-                  "const data = pm.response.json();",
-                  "pm.test('Token admin tersedia', function () { pm.expect(data.token).to.be.a('string').and.not.empty; });",
-                  "pm.test('Akun admin', function () { pm.expect(data.user.is_admin).to.eql(true); });",
-                  "pm.collectionVariables.set('token', data.token);"
+                  "const hasilApi = pm.response.json();",
+                  "pm.test('Token admin tersedia', function () { pm.expect(hasilApi.token).to.be.a('string').and.not.empty; });",
+                  "pm.test('Akun admin', function () { pm.expect(hasilApi.user.is_admin).to.eql(true); });",
+                  "pm.collectionVariables.set('token', hasilApi.token);"
                 ]
               }
             }
@@ -85,9 +85,9 @@
                 "type": "text/javascript",
                 "exec": [
                   "pm.test('Status 200', function () { pm.response.to.have.status(200); });",
-                  "const data = pm.response.json();",
-                  "pm.test('Akun pelanggan', function () { pm.expect(data.user.is_admin).to.eql(false); });",
-                  "pm.collectionVariables.set('token_pelanggan', data.token);"
+                  "const hasilApi = pm.response.json();",
+                  "pm.test('Akun pelanggan', function () { pm.expect(hasilApi.user.is_admin).to.eql(false); });",
+                  "pm.collectionVariables.set('token_pelanggan', hasilApi.token);"
                 ]
               }
             }
@@ -252,9 +252,9 @@
                 "type": "text/javascript",
                 "exec": [
                   "pm.test('Status 201', function () { pm.response.to.have.status(201); });",
-                  "const data = pm.response.json();",
-                  "pm.test('Nama produk sesuai', function () { pm.expect(data.data.nama).to.eql('Postman Test Phone'); });",
-                  "pm.collectionVariables.set('produk_id', data.data.id);"
+                  "const hasilApi = pm.response.json();",
+                  "pm.test('Nama produk sesuai', function () { pm.expect(hasilApi.data.nama).to.eql('Postman Test Phone'); });",
+                  "pm.collectionVariables.set('produk_id', hasilApi.data.id);"
                 ]
               }
             }
