@@ -11,7 +11,6 @@ permissions:
 
 jobs:
   backend-test:
-    name: Backend test
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -35,7 +34,6 @@ jobs:
         run: php artisan test
 
   frontend-test:
-    name: Frontend test
     runs-on: ubuntu-latest
     defaults:
       run:
