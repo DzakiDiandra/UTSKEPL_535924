@@ -9,7 +9,8 @@ RUN composer dump-autoload --optimize --no-dev
 
 FROM php:8.2-cli-alpine AS runtime
 
-LABEL org.opencontainers.image.source="https://github.com/DzakiDiandra/UTSKEPL_535924"
+LABEL org.opencontainers.image.source="https://github.com/DzakiDiandra/uts-pl-535924"
+LABEL org.opencontainers.image.title="uts-pl-535924-backend"
 
 RUN docker-php-ext-install pdo_mysql
 
