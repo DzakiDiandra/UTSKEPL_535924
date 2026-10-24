@@ -132,7 +132,7 @@ jobs:
           exit 1
       - name: Jalankan backend
         run: |
-          docker run -d --name uji-api --network jaringan-uji -p 8000:8000 \
+          docker run -d --name uji-api --network jaringan-uji --network-alias backend -p 8000:8000 \
             -e APP_KEY="$APP_KEY" \
             -e APP_ENV=production \
             -e APP_DEBUG=false \
