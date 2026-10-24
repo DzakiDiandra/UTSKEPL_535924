@@ -6,7 +6,7 @@ import AppHeader from '@/components/AppHeader.vue'
 import ToastMessage from '@/components/ToastMessage.vue'
 
 const route = useRoute()
-const tampilShell = computed(() => !route.meta.admin)
+const tampilShell = computed(() => !route.meta.admin && !route.meta.public)
 </script>
 
 <template>

@@ -24,8 +24,8 @@ api.interceptors.response.use(
     if (error.response?.status === 401) {
       hapusSesi()
 
-      if (!window.location.pathname.startsWith('/admin/login')) {
-        window.location.assign('/admin/login')
+      if (!window.location.pathname.startsWith('/login')) {
+        window.location.assign('/login')
       }
     }
 

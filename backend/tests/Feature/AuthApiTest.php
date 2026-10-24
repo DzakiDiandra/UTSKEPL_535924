@@ -50,4 +50,47 @@ class AuthApiTest extends TestCase
                 'message' => 'Email atau password salah.',
             ]);
     }
+
+    public function test_login_tanpa_data_menghasilkan_422(): void
+    {
+        $this->postJson('/api/login', [])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['email', 'password']);
+    }
+
+    public function test_me_tanpa_token_menghasilkan_401_json(): void
+    {
+        $this->get('/api/me')
+            ->assertUnauthorized()
+            ->assertHeader('Content-Type', 'application/json');
+    }
+
+    public function test_logout_menghapus_token_dan_token_lama_ditolak(): void
+    {
+        User::factory()->create([
+            'email' => 'admin@example.com',
+            'is_admin' => true,
+        ]);
+
+        $token = $this->postJson('/api/login', [
+            'email' => 'admin@example.com',
+            'password' => 'password',
+        ])->json('token');
+
+        $this->withToken($token)
+            ->getJson('/api/me')
+            ->assertOk();
+
+        $this->withToken($token)
+            ->postJson('/api/logout')
+            ->assertNoContent();
+
+        $this->assertDatabaseCount('personal_access_tokens', 0);
+
+        $this->app['auth']->forgetGuards();
+
+        $this->withToken($token)
+            ->getJson('/api/me')
+            ->assertUnauthorized();
+    }
 }

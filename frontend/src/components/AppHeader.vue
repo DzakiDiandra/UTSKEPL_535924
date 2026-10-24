@@ -39,8 +39,8 @@ async function keluar() {
 
   try {
     await logout()
-    tampilkanToast('Anda sudah keluar dari panel admin.', 'info')
-    await router.push({ name: 'beranda' })
+    tampilkanToast('Anda sudah keluar dari akun.', 'info')
+    await router.push({ name: 'login' })
   } finally {
     sedangKeluar.value = false
   }
@@ -74,9 +74,13 @@ async function keluar() {
           <Search :size="20" />
         </RouterLink>
 
-        <template v-if="isAuthenticated && isAdmin">
-          <span class="header__user">{{ namaDepan }}</span>
-          <RouterLink class="btn btn--secondary btn--small header__admin" :to="{ name: 'admin-produk' }">
+        <template v-if="isAuthenticated">
+          <span v-if="isAdmin" class="header__user">{{ namaDepan }}</span>
+          <RouterLink
+            v-if="isAdmin"
+            class="btn btn--secondary btn--small header__admin"
+            :to="{ name: 'admin-produk' }"
+          >
             <LayoutDashboard :size="16" />
             Admin
           </RouterLink>
@@ -91,9 +95,9 @@ async function keluar() {
           </button>
         </template>
 
-        <RouterLink v-else class="btn btn--secondary btn--small header__masuk" :to="{ name: 'admin-login' }">
+        <RouterLink v-else class="btn btn--secondary btn--small header__masuk" :to="{ name: 'login' }">
           <LogIn :size="16" />
-          Admin
+          Masuk
         </RouterLink>
 
         <button
@@ -114,13 +118,11 @@ async function keluar() {
       <nav class="header__mobile-nav" aria-label="Navigasi seluler">
         <RouterLink :to="{ name: 'beranda' }">Beranda</RouterLink>
         <RouterLink :to="{ name: 'katalog' }">Katalog HP</RouterLink>
-        <RouterLink v-if="isAuthenticated && isAdmin" :to="{ name: 'admin-produk' }">
-          Panel admin
-        </RouterLink>
-        <RouterLink v-else :to="{ name: 'admin-login' }">Masuk admin</RouterLink>
+        <RouterLink v-if="isAdmin" :to="{ name: 'admin-produk' }">Panel admin</RouterLink>
+        <RouterLink v-if="!isAuthenticated" :to="{ name: 'login' }">Masuk</RouterLink>
       </nav>
       <button
-        v-if="isAuthenticated && isAdmin"
+        v-if="isAuthenticated"
         class="btn btn--secondary btn--block"
         type="button"
         :disabled="sedangKeluar"
