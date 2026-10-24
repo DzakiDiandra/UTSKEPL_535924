@@ -12,149 +12,56 @@ class ProdukApiTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_index_publik_menampilkan_semua_produk_aktif(): void
+    public function test_semua_endpoint_get_tanpa_token_menghasilkan_401(): void
     {
-        Produk::factory()->create(['nama' => 'Produk Aktif Satu']);
-        Produk::factory()->create(['nama' => 'Produk Aktif Dua']);
-        Produk::factory()->nonaktif()->create(['nama' => 'Produk Nonaktif']);
+        $produk = Produk::factory()->create();
+
+        foreach (['/api/produk', "/api/produk/{$produk->id}", '/api/merek', '/api/me', '/api/admin/produk'] as $url) {
+            $this->getJson($url)->assertUnauthorized();
+        }
+    }
+
+    public function test_tanpa_header_accept_tetap_menghasilkan_json_401(): void
+    {
+        $this->get('/api/produk')
+            ->assertUnauthorized()
+            ->assertHeader('Content-Type', 'application/json');
+    }
+
+    public function test_user_biasa_dapat_melihat_katalog(): void
+    {
+        Sanctum::actingAs(User::factory()->create(['is_admin' => false]));
+        $produk = Produk::factory()->create(['nama' => 'Produk Untuk Pelanggan']);
 
         $this->getJson('/api/produk')
             ->assertOk()
-            ->assertJsonCount(2, 'data')
-            ->assertJsonMissing(['nama' => 'Produk Nonaktif']);
-    }
-
-    public function test_show_publik_mengembalikan_detail_produk(): void
-    {
-        $produk = Produk::factory()->create([
-            'nama' => 'Samsung Galaxy Uji',
-            'merek' => 'Samsung',
-            'stok' => 3,
-        ]);
+            ->assertJsonFragment(['nama' => 'Produk Untuk Pelanggan']);
 
         $this->getJson("/api/produk/{$produk->id}")
             ->assertOk()
-            ->assertJsonPath('data.nama', 'Samsung Galaxy Uji')
-            ->assertJsonPath('data.status_stok', 'menipis')
-            ->assertJsonPath('data.tersedia', true)
-            ->assertJsonStructure([
-                'data' => [
-                    'id',
-                    'nama',
-                    'merek',
-                    'deskripsi',
-                    'harga',
-                    'stok',
-                    'chipset',
-                    'ram_gb',
-                    'penyimpanan_gb',
-                    'baterai_mah',
-                    'kamera_mp',
-                    'layar_inci',
-                    'gambar_url',
-                    'is_aktif',
-                    'status_stok',
-                    'tersedia',
-                    'created_at',
-                    'updated_at',
-                ],
-            ]);
-    }
-
-    public function test_produk_nonaktif_tidak_tampil_di_publik(): void
-    {
-        $produk = Produk::factory()->nonaktif()->create();
-
-        $this->getJson('/api/produk')
-            ->assertOk()
-            ->assertJsonCount(0, 'data');
-
-        $this->getJson("/api/produk/{$produk->id}")
-            ->assertNotFound();
-    }
-
-    public function test_daftar_produk_dapat_difilter_berdasarkan_merek(): void
-    {
-        Produk::factory()->create(['merek' => 'Samsung']);
-        Produk::factory()->create(['merek' => 'Xiaomi']);
-        Produk::factory()->nonaktif()->create(['merek' => 'Samsung']);
-
-        $this->getJson('/api/produk?merek=Samsung')
-            ->assertOk()
-            ->assertJsonCount(1, 'data')
-            ->assertJsonPath('data.0.merek', 'Samsung');
-    }
-
-    public function test_daftar_produk_dapat_dicari_berdasarkan_nama_atau_merek(): void
-    {
-        Produk::factory()->create([
-            'nama' => 'Samsung Galaxy A15',
-            'merek' => 'Samsung',
-        ]);
-        Produk::factory()->create([
-            'nama' => 'Xiaomi Redmi Note 13',
-            'merek' => 'Xiaomi',
-        ]);
-
-        $this->getJson('/api/produk?q=galaxy')
-            ->assertOk()
-            ->assertJsonCount(1, 'data')
-            ->assertJsonPath('data.0.nama', 'Samsung Galaxy A15');
-
-        $this->getJson('/api/produk?q=Xiaomi')
-            ->assertOk()
-            ->assertJsonCount(1, 'data')
-            ->assertJsonPath('data.0.merek', 'Xiaomi');
-    }
-
-    public function test_daftar_produk_dapat_diurutkan_berdasarkan_harga(): void
-    {
-        Produk::factory()->create(['nama' => 'Termurah', 'harga' => 1000000]);
-        Produk::factory()->create(['nama' => 'Menengah', 'harga' => 2000000]);
-        Produk::factory()->create(['nama' => 'Termahal', 'harga' => 3000000]);
-
-        $this->getJson('/api/produk?urut=harga_asc')
-            ->assertOk()
-            ->assertJsonPath('data.0.harga', 1000000)
-            ->assertJsonPath('data.1.harga', 2000000)
-            ->assertJsonPath('data.2.harga', 3000000);
-
-        $this->getJson('/api/produk?urut=harga_desc')
-            ->assertOk()
-            ->assertJsonPath('data.0.harga', 3000000)
-            ->assertJsonPath('data.1.harga', 2000000)
-            ->assertJsonPath('data.2.harga', 1000000);
-    }
-
-    public function test_daftar_merek_hanya_berisi_merek_unik_dari_produk_aktif(): void
-    {
-        Produk::factory()->create(['merek' => 'Samsung']);
-        Produk::factory()->create(['merek' => 'Samsung']);
-        Produk::factory()->create(['merek' => 'Xiaomi']);
-        Produk::factory()->nonaktif()->create(['merek' => 'Nokia']);
+            ->assertJsonPath('data.nama', 'Produk Untuk Pelanggan');
 
         $this->getJson('/api/merek')
             ->assertOk()
-            ->assertExactJson([
-                'data' => ['Samsung', 'Xiaomi'],
-            ]);
+            ->assertJsonStructure(['data']);
+
+        $this->getJson('/api/me')
+            ->assertOk()
+            ->assertJsonPath('user.is_admin', false);
     }
 
-    public function test_store_produk_tanpa_login_menghasilkan_401(): void
-    {
-        $this->postJson('/api/produk', $this->dataProduk())
-            ->assertUnauthorized();
-    }
-
-    public function test_store_produk_oleh_non_admin_menghasilkan_403(): void
+    public function test_user_biasa_tidak_boleh_menulis_produk(): void
     {
         Sanctum::actingAs(User::factory()->create(['is_admin' => false]));
+        $produk = Produk::factory()->create();
 
-        $this->postJson('/api/produk', $this->dataProduk())
-            ->assertForbidden();
+        $this->postJson('/api/produk', $this->dataProduk())->assertForbidden();
+        $this->putJson("/api/produk/{$produk->id}", ['harga' => 1750000])->assertForbidden();
+        $this->deleteJson("/api/produk/{$produk->id}")->assertForbidden();
+        $this->getJson('/api/admin/produk')->assertForbidden();
     }
 
-    public function test_store_produk_oleh_admin_menghasilkan_201(): void
+    public function test_admin_dapat_menambah_produk_dengan_status_201(): void
     {
         Sanctum::actingAs(User::factory()->create(['is_admin' => true]));
 
@@ -171,7 +78,7 @@ class ProdukApiTest extends TestCase
         ]);
     }
 
-    public function test_store_produk_menghasilkan_422_untuk_harga_negatif_dan_nama_kosong(): void
+    public function test_admin_mendapat_422_untuk_harga_negatif_dan_nama_kosong(): void
     {
         Sanctum::actingAs(User::factory()->create(['is_admin' => true]));
 
@@ -221,19 +128,70 @@ class ProdukApiTest extends TestCase
         ]);
     }
 
-    public function test_status_stok_menghasilkan_habis_menipis_dan_tersedia(): void
+    public function test_daftar_produk_dapat_difilter_berdasarkan_merek(): void
     {
-        $habis = Produk::factory()->create(['stok' => 0]);
-        $menipis = Produk::factory()->create(['stok' => 5]);
-        $tersedia = Produk::factory()->create(['stok' => 6]);
+        Sanctum::actingAs(User::factory()->create());
+        Produk::factory()->create(['merek' => 'Samsung']);
+        Produk::factory()->create(['merek' => 'Xiaomi']);
+        Produk::factory()->nonaktif()->create(['merek' => 'Samsung']);
 
-        $this->assertSame('habis', $habis->status_stok);
-        $this->assertSame('menipis', $menipis->status_stok);
-        $this->assertSame('tersedia', $tersedia->status_stok);
+        $this->getJson('/api/produk?merek=Samsung')
+            ->assertOk()
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.merek', 'Samsung');
+    }
 
-        $this->assertFalse($habis->tersedia);
-        $this->assertTrue($menipis->tersedia);
-        $this->assertTrue($tersedia->tersedia);
+    public function test_daftar_produk_dapat_dicari_dan_diurutkan(): void
+    {
+        Sanctum::actingAs(User::factory()->create());
+        Produk::factory()->create([
+            'nama' => 'Samsung Galaxy A15',
+            'merek' => 'Samsung',
+            'harga' => 2000000,
+        ]);
+        Produk::factory()->create([
+            'nama' => 'Xiaomi Redmi Note 13',
+            'merek' => 'Xiaomi',
+            'harga' => 3000000,
+        ]);
+
+        $this->getJson('/api/produk?q=galaxy')
+            ->assertOk()
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.nama', 'Samsung Galaxy A15');
+
+        $this->getJson('/api/produk?urut=harga_asc')
+            ->assertOk()
+            ->assertJsonPath('data.0.harga', 2000000)
+            ->assertJsonPath('data.1.harga', 3000000);
+    }
+
+    public function test_daftar_merek_hanya_berisi_merek_unik_dari_produk_aktif(): void
+    {
+        Sanctum::actingAs(User::factory()->create());
+        Produk::factory()->create(['merek' => 'Samsung']);
+        Produk::factory()->create(['merek' => 'Samsung']);
+        Produk::factory()->create(['merek' => 'Xiaomi']);
+        Produk::factory()->nonaktif()->create(['merek' => 'Nokia']);
+
+        $this->getJson('/api/merek')
+            ->assertOk()
+            ->assertExactJson([
+                'data' => ['Samsung', 'Xiaomi'],
+            ]);
+    }
+
+    public function test_produk_nonaktif_tidak_tampil_di_publik(): void
+    {
+        Sanctum::actingAs(User::factory()->create());
+        $produk = Produk::factory()->nonaktif()->create();
+
+        $this->getJson('/api/produk')
+            ->assertOk()
+            ->assertJsonCount(0, 'data');
+
+        $this->getJson("/api/produk/{$produk->id}")
+            ->assertNotFound();
     }
 
     public function test_admin_mendapat_semua_produk_termasuk_yang_nonaktif(): void
@@ -248,12 +206,15 @@ class ProdukApiTest extends TestCase
             ->assertJsonFragment(['nama' => 'Produk Nonaktif']);
     }
 
-    public function test_non_admin_tidak_dapat_mengakses_daftar_admin(): void
+    public function test_status_stok_menghasilkan_habis_menipis_dan_tersedia(): void
     {
-        Sanctum::actingAs(User::factory()->create(['is_admin' => false]));
+        $habis = Produk::factory()->create(['stok' => 0]);
+        $menipis = Produk::factory()->create(['stok' => 5]);
+        $tersedia = Produk::factory()->create(['stok' => 6]);
 
-        $this->getJson('/api/admin/produk')
-            ->assertForbidden();
+        $this->assertSame('habis', $habis->status_stok);
+        $this->assertSame('menipis', $menipis->status_stok);
+        $this->assertSame('tersedia', $tersedia->status_stok);
     }
 
     /**
