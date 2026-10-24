@@ -1,50 +1,49 @@
-# frontend
+# Frontend LokaHP
 
-This template should help get you started developing with Vue 3 in Vite.
+Antarmuka Vue 3 + Vite untuk katalog HP dan panel admin toko.
 
-## Recommended IDE Setup
+## Prasyarat
 
-[VS Code](https://code.visualstudio.com/) + [Vue (Official)](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
+- Node.js 24
+- Backend Laravel berjalan di `http://localhost:8000`
 
-## Recommended Browser Setup
+## Konfigurasi
 
-- Chromium-based browsers (Chrome, Edge, Brave, etc.):
-  - [Vue.js devtools](https://chromewebstore.google.com/detail/vuejs-devtools/nhdogjmejiglipccpnnnanhbledajbpd)
-  - [Turn on Custom Object Formatter in Chrome DevTools](http://bit.ly/object-formatters)
-- Firefox:
-  - [Vue.js devtools](https://addons.mozilla.org/en-US/firefox/addon/vue-js-devtools/)
-  - [Turn on Custom Object Formatter in Firefox DevTools](https://fxdx.dev/firefox-devtools-custom-object-formatters/)
+Salin `.env.example` menjadi `.env`, lalu sesuaikan nilainya.
 
-## Customize configuration
+```env
+VITE_API_URL=http://localhost:8000/api
+VITE_WA_NUMBER=6281234567890
+```
 
-See [Vite Configuration Reference](https://vite.dev/config/).
+`VITE_WA_NUMBER` bersifat opsional. Jika dikosongkan, tombol WhatsApp tidak ditampilkan.
 
-## Project Setup
+## Menjalankan
 
 ```sh
 npm install
-```
-
-### Compile and Hot-Reload for Development
-
-```sh
 npm run dev
 ```
 
-### Compile and Minify for Production
+Vite berjalan di `http://localhost:5173`.
 
-```sh
-npm run build
-```
-
-### Run Unit Tests with [Vitest](https://vitest.dev/)
-
-```sh
-npm run test:unit
-```
-
-### Lint with [ESLint](https://eslint.org/)
+## Perintah Pemeriksaan
 
 ```sh
 npm run lint
+npm run test:unit -- --run
+npm run build
 ```
+
+## Halaman
+
+- `/` — beranda
+- `/produk` — katalog dengan pencarian, filter merek, dan urutan harga
+- `/produk/:id` — detail produk
+- `/admin/login` — login admin
+- `/admin/produk` — daftar produk
+- `/admin/produk/baru` — tambah produk
+- `/admin/produk/:id/edit` — edit produk
+
+Semua permintaan API melewati `src/api.js`. Token admin disimpan di localStorage dan dipasang otomatis
+sebagai bearer token. Respons `401` menghapus sesi dan mengarahkan kembali ke halaman login.

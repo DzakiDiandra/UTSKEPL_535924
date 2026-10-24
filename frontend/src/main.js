@@ -1,3 +1,7 @@
+import '@fontsource/rubik/latin-600.css'
+import '@fontsource/nunito-sans/latin-400.css'
+import '@fontsource/nunito-sans/latin-600.css'
+import '@fontsource/nunito-sans/latin-700.css'
 import './assets/main.css'
 
 import { createApp } from 'vue'
